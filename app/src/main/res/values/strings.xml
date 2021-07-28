@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Minesweeper</string>
+    <string name="dialogTitle">Play Again?</string>
+</resources>
