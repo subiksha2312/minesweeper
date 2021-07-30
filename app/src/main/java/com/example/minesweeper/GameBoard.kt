@@ -198,14 +198,21 @@ class GameBoard : View {
         }
     }
 
+    fun initMinesArray() {
+        for(i in 0 until GRIDSIZE) {
+            for (j in 0 until GRIDSIZE) {
+                minesarray[i][j] = 0
+            }
+        }
+    }
+
     fun declaringmines() {
 
         //Log.d("random0","entering declaring mines")
-
-        minesarray = Array(GRIDSIZE) { IntArray(GRIDSIZE) { 0 } }
+        minecoord.clear()
+        initMinesArray()
         var rowarray = arrayOf(0, 1, 2, 3, 4, 5, 6, 7)
 
-        var minestringarray = Array(2) { IntArray(5) { 0 } }
         var minestringarray2: MutableList<IntArray> = ArrayList()
 
         numberofmines()
@@ -289,58 +296,84 @@ class GameBoard : View {
     }
 
 
-
-
-
-
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
 
-                if (locatemines(event.x, event.y) == true) {
-                    resetgame()
-                }
-               else {
-
-                      if (checkiftouchedbefore(event.x, event.y) == false) {
-                           score++
-                           tvscore.setText("Your score is = $score")
-                           postInvalidate()
-                       }
-
+                if(checkOutOfBounds(event.x , event.y) == true) {
+                    return false
                 }
 
-                if(checkPointInReplayRect(event.x , event.y)== true) {
-                    gameEnd = false
-                    Log.d("random0.2","calling from ontouch")
-                    declaringmines()
-                    computeminecoord()
-                    invalidate()
-
-                    Log.d("mode3","$mMode")
-                    if(mMode =="hard") {
-                        tvhighscorehard = (parent as View).findViewById(R.id.highscorehard) as TextView
-                        tvhighscorehard.setText("High Score is: $highscorehard")
+                if(gameEnd == false) {
+                    if (locatemines(event.x, event.y) == true) {
+                        Log.d("touch001","mineblast")
+                        resetgame()
                     }
-
-                    else if(mMode=="intermediate") {
-                        tvhighscoreinter = (parent as View).findViewById(R.id.highscoreinter) as TextView
-                        tvhighscoreinter.setText("High Score is:$highscoreinter")
-                    }
-
                     else {
-                        tvhighscoreeasy =  (parent as View).findViewById(R.id.highscore) as TextView
-                        tvhighscoreeasy.setText("High Score is:$highscore")
+                        if (checkiftouchedbefore(event.x, event.y) == false) {
+                            Log.d("touch002", "newsquare")
+                            Log.d("touch003", "incrementing score")
+                            score++
+                            tvscore.setText("Your score is = $score")
+                            postInvalidate()
+                        }
                     }
+                }
+                else {
+                    Log.d("touch004","ending game")
+                    if (checkPointInReplayRect(event.x, event.y) == true) {
+                        Log.d("touch005", "restarting new game ")
+                        gameEnd = false
+                        declaringmines()
+                        computeminecoord()
+                        invalidate()
 
-                    score = 0
-                    tvscore.setText("$score")
-                    emptymines.clear()
+                        Log.d("mode3", "$mMode")
+                        if (mMode == "hard") {
+                            tvhighscorehard =
+                                (parent as View).findViewById(R.id.highscorehard) as TextView
+                            tvhighscorehard.setText("High Score is: $highscorehard")
+                        } else if (mMode == "intermediate") {
+                            tvhighscoreinter =
+                                (parent as View).findViewById(R.id.highscoreinter) as TextView
+                            tvhighscoreinter.setText("High Score is:$highscoreinter")
+                        } else {
+                            tvhighscoreeasy =
+                                (parent as View).findViewById(R.id.highscore) as TextView
+                            tvhighscoreeasy.setText("High Score is:$highscore")
+                        }
 
+                        score = 0
+                        tvscore.setText("$score")
+                        emptymines.clear()
+
+
+                    }
                 }
 
 
             }
+        }
+        return false
+    }
+
+    fun checkOutOfBounds(x:Float, y:Float) :Boolean {
+
+        var mColorRect =Rect(0,0,0,0)
+
+        var currow =0
+        var currcol=0
+
+        mColorRect.left = (( x / 100).toInt()) *100 +(startx).toInt()
+        mColorRect.top =  (( y / 100).toInt()) *100 +(starty).toInt()
+        mColorRect.bottom = mColorRect.top + 100
+        mColorRect.right = mColorRect.left +100
+
+        currow = (mColorRect.left) / 100
+        currcol = (mColorRect.top) / 100
+
+        if(currow < 0 || currow >= GRIDSIZE || currcol < 0 || currcol >= GRIDSIZE) {
+            return true
         }
         return false
     }
@@ -366,7 +399,7 @@ class GameBoard : View {
         else {
             emptymines.add(mColorRect)
             minesarray[currow][currcol] = 2
-            locatingsurroundingmines(x,y)
+            locatingsurroundingmines(x, y)
         }
 
         return false
@@ -386,7 +419,7 @@ class GameBoard : View {
             }
         }
 
-        if(mMode == "intermediate") {
+        else if(mMode == "intermediate") {
             if (score > highscoreinter) {
                 highscoreinter = score
                 with(hsprefinter.edit()) {
@@ -412,6 +445,8 @@ class GameBoard : View {
         tvscore.setText("Your score is = $score")
         gameEnd = true
         emptymines.clear()
+
+
         var v = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(
@@ -429,7 +464,7 @@ class GameBoard : View {
     fun checkPointInReplayRect(x: Float, y: Float): Boolean {
         if (x > ((width / 2)-200f) &&
             x < ((width / 2) + 150).toFloat() &&
-            y > ((height / 3) + 200).toFloat() &&
+            y > ((height / 3) + 100).toFloat() &&
             y < ((height / 3) + 225).toFloat()
         ) {
 
@@ -639,26 +674,30 @@ class GameBoard : View {
         }
 
 
+        if(gameEnd == false) {
+            if (emptymines.size != 0) {
+                for (i in 0 until emptymines.size) {
+                    canvas?.drawRect(
+                        emptymines[i],
+                        gridcolor
+                    )
 
-        if (emptymines.size != 0) {
-            for (i in 0 until emptymines.size) {
-                canvas?.drawRect(
-                    emptymines[i],
-                    gridcolor
-                )
+                    var displaycoordinate: IntArray = translatecoordinates(emptymines[i])
+                    Log.d("okayfine1", "${displaycoordinate[0]},${displaycoordinate[1]}")
+                    Log.d(
+                        "okayfine2",
+                        "${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}"
+                    )
+                    canvas?.drawText(
+                        "${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}",
+                        (emptymines[i].left + emptymines[i].width() / 2).toFloat(),
+                        (emptymines[i].top + emptymines[i].height() / 2).toFloat(),
+                        paintminecounttext
 
-                var displaycoordinate: IntArray = translatecoordinates(emptymines[i])
-                Log.d("okayfine1","${displaycoordinate[0]},${displaycoordinate[1]}")
-                Log.d("okayfine2","${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}")
-                canvas?.drawText(
-                    "${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}",
-                    (emptymines[i].left + emptymines[i].width()/2).toFloat(),
-                    (emptymines[i].top + emptymines[i].height()/2).toFloat(),
-                    paintminecounttext
+                    )
+                }
 
-                )
             }
-
         }
 
         if (gameEnd == true) {
@@ -673,16 +712,16 @@ class GameBoard : View {
 
             canvas?.drawRect(
                 ((width / 2) - 200f).toFloat(),
-                ((height / 3) + 150).toFloat(),
-                ((width / 2) + 200).toFloat(),
+                ((height / 3) + 100).toFloat(),
+                ((width / 2) + 150).toFloat(),
                 ((height / 3) + 225).toFloat(),
                 paintreplay
             )
 
             canvas?.drawText(
                 "Replay!",
-                ((width / 2) + 10).toFloat(),
-                ((height / 3) + 200).toFloat(),
+                ((width / 2) - 10).toFloat(),
+                ((height / 3) + 170).toFloat(),
                 paintreplaytext
             )
         }
