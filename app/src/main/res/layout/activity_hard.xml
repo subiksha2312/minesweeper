@@ -5,7 +5,7 @@
     android:id="@+id/userscore"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    tools:context=".hard"
     android:orientation="vertical">
 
 
@@ -20,6 +20,7 @@
             android:id="@+id/score"
             android:layout_width="420dp"
             android:layout_height="wrap_content"
+            android:background="#8997E6"
             android:textAppearance="@style/TextAppearance.AppCompat.Display2" />
 
 
@@ -27,17 +28,24 @@
 
 
     <com.example.minesweeper.GameBoard
-        android:id="@+id/gameboard"
+        android:id="@+id/gameboard3"
         android:layout_width="314dp"
         android:layout_height="314dp"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_gravity="center_horizontal"
+        app:gameMode="hard"/>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="338dp"
-        android:background="#2196F3"
+        android:layout_height="357dp"
+        android:background="#8997E6"
         android:fillViewport="true"
         android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/highscorehard"
+            android:layout_width="420dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display2" />
 
 
     </LinearLayout>

@@ -4,5 +4,6 @@
         <attr name="exampleDimension" format="dimension" />
         <attr name="exampleColor" format="color" />
         <attr name="exampleDrawable" format="color|reference" />
+        <attr name="gameMode" format="string" ></attr>
     </declare-styleable>
 </resources>

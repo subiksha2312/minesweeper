@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/userscore"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EFF0F4"
+    android:orientation="vertical"
+    tools:context=".intermediate">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#2196F3"
+        android:fillViewport="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/score"
+            android:layout_width="420dp"
+            android:layout_height="wrap_content"
+            android:background="#8997E6"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display2" />
+
+
+    </LinearLayout>
+
+
+    <com.example.minesweeper.GameBoard
+        android:id="@+id/gameboard2"
+        android:layout_width="314dp"
+        android:layout_height="314dp"
+        android:layout_gravity="center_horizontal"
+        app:gameMode="intermediate" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="362dp"
+        android:background="#8997E6"
+        android:fillViewport="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/highscoreinter"
+            android:layout_width="420dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display2" />
+
+
+    </LinearLayout>
+
+</LinearLayout>

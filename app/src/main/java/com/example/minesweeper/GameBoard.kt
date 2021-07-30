@@ -2,6 +2,7 @@ package com.example.minesweeper
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -29,22 +30,39 @@ class GameBoard : View {
     var starty = 10f
     private val GRIDSIZE = 8
     private val squareside: Float = 100f
+    private var maxsize: Int =0
+
 
     private var tPaint: Paint = Paint()
     private var gridcolor: Paint = Paint()
     private var paintEndCard: Paint = Paint()
     private var paintreplay:Paint = Paint()
     private var paintreplaytext:Paint = Paint()
+    private var paintminecounttext: Paint = Paint()
 
     private var minesarray = Array(GRIDSIZE) {IntArray(GRIDSIZE){0} }
     private var minecoord = ArrayList<RectF>()
     private var emptymines :MutableList<Rect> = ArrayList()
+    private var minesarraylocate = Array(GRIDSIZE) {IntArray(GRIDSIZE){0} }
 
     var currentrow =0
     var currentcolumn = 0
 
+    var mMode: String = ""
+    lateinit var hspref: SharedPreferences
+    lateinit var hsprefhard: SharedPreferences
+    lateinit var hsprefinter: SharedPreferences
+
     var score = 0
+    var highscore =0
+    var highscorehard =0
+    var highscoreinter =0
+    var minecount = 0
+
     private lateinit var tvscore: TextView
+    private lateinit var tvhighscoreeasy: TextView
+    private lateinit var tvhighscoreinter: TextView
+    private lateinit var tvhighscorehard: TextView
 
 
     constructor(context: Context) : super(context) {
@@ -68,20 +86,77 @@ class GameBoard : View {
 
     private fun init(attrs: AttributeSet?, defStyle: Int) {
 
+
+        val attributeArray = context.obtainStyledAttributes(attrs, R.styleable.GameBoard, 0, 0)
+        mMode = attributeArray.getString(R.styleable.GameBoard_gameMode) ?: "easy"
+        Log.d("mode1","$mMode")
+
         tPaint.color = Color.BLACK
         gridcolor.color = Color.WHITE
         paintEndCard.color = Color.DKGRAY
         paintreplay.color = Color.BLACK
         paintreplaytext.color = Color.WHITE
+        paintminecounttext.color = Color.BLACK
 
         paintreplaytext.textSize = 50F
+        paintminecounttext.textSize = 50f
+
 
         paintreplaytext.textAlign = Paint.Align.CENTER
         paintreplay.textAlign = Paint.Align.CENTER
 
-        Log.d("random0.1","calling from init")
         declaringmines()
         computeminecoord()
+
+        if(mMode=="hard") {
+            hsprefhard =
+                context.getSharedPreferences((R.string.hardHighScoreKey).toString(), Context.MODE_PRIVATE)
+            if (hsprefhard.contains((R.string.hardHighScore).toString()) == false) {
+                with(hsprefhard.edit()) {
+                    putInt((R.string.hardHighScore).toString(), 0)
+                    apply()
+                    commit()
+                }
+            }
+
+            highscorehard = hsprefhard.getInt((R.string.hardHighScore).toString(), 0)
+
+        }
+
+        if(mMode=="intermediate") {
+            hsprefinter =
+                context.getSharedPreferences((R.string.interHighScoreKey).toString(), Context.MODE_PRIVATE)
+            if (hsprefinter.contains((R.string.interHighScore).toString()) == false) {
+                with(hsprefinter.edit()) {
+                    putInt((R.string.interHighScore).toString(), 0)
+                    apply()
+                    commit()
+                }
+            }
+
+            highscoreinter = hsprefinter.getInt((R.string.interHighScore).toString(), 0)
+
+        }
+
+        else {
+            hspref =
+                context.getSharedPreferences(
+                    (R.string.easyHighScoreKey).toString(),
+                    Context.MODE_PRIVATE
+                )
+            if (hspref.contains((R.string.easyHighScore).toString()) == false) {
+                with(hspref.edit()) {
+                    putInt((R.string.easyHighScore).toString(), 0)
+                    apply()
+                    commit()
+                }
+            }
+
+            highscore = hspref.getInt((R.string.easyHighScore).toString(), 0)
+        }
+
+        attributeArray.recycle()
+
     }
 
 
@@ -91,6 +166,36 @@ class GameBoard : View {
         tvscore = (parent as View).findViewById(R.id.score) as TextView
         tvscore.setText("$score")
 
+        Log.d("mode2","$mMode")
+
+
+        if(mMode =="hard") {
+            tvhighscorehard = (parent as View).findViewById(R.id.highscorehard) as TextView
+            tvhighscorehard.setText("High Score is: $highscorehard")
+        }
+
+        else if(mMode=="intermediate") {
+            tvhighscoreinter = (parent as View).findViewById(R.id.highscoreinter) as TextView
+            tvhighscoreinter.setText("High Score is:$highscoreinter")
+        }
+
+        else {
+            tvhighscoreeasy =  (parent as View).findViewById(R.id.highscore) as TextView
+            tvhighscoreeasy.setText("High Score is:$highscore")
+        }
+
+    }
+
+    fun numberofmines() {
+        if (mMode=="easy") {
+            maxsize = 5
+        }
+        else if (mMode=="intermediate") {
+            maxsize = 7
+        }
+        else {
+            maxsize = 10
+        }
     }
 
     fun declaringmines() {
@@ -103,9 +208,9 @@ class GameBoard : View {
         var minestringarray = Array(2) { IntArray(5) { 0 } }
         var minestringarray2: MutableList<IntArray> = ArrayList()
 
+        numberofmines()
 
-
-        for (i in 0 until 5) {
+        for (i in 0 until maxsize) {
             var temp = IntArray(2)
             temp[0] = rowarray.random()
             temp[1] = rowarray.random()
@@ -117,8 +222,8 @@ class GameBoard : View {
             Log.d("minesarray1", "${minestringarray2.get(i).toList()}")
 
         }
-        for (i in 0 until 5) {
-            for (j in i + 1 until 5) {
+        for (i in 0 until maxsize) {
+            for (j in i + 1 until maxsize) {
                 if (minestringarray2[i].contentEquals(minestringarray2[j])) {
                     var temp = IntArray(2)
                     minestringarray2.removeAt(j)
@@ -147,6 +252,10 @@ class GameBoard : View {
          */
 
 
+    }
+
+    fun setMode(mode: String) {
+        mMode = mode
     }
 
 
@@ -207,6 +316,23 @@ class GameBoard : View {
                     declaringmines()
                     computeminecoord()
                     invalidate()
+
+                    Log.d("mode3","$mMode")
+                    if(mMode =="hard") {
+                        tvhighscorehard = (parent as View).findViewById(R.id.highscorehard) as TextView
+                        tvhighscorehard.setText("High Score is: $highscorehard")
+                    }
+
+                    else if(mMode=="intermediate") {
+                        tvhighscoreinter = (parent as View).findViewById(R.id.highscoreinter) as TextView
+                        tvhighscoreinter.setText("High Score is:$highscoreinter")
+                    }
+
+                    else {
+                        tvhighscoreeasy =  (parent as View).findViewById(R.id.highscore) as TextView
+                        tvhighscoreeasy.setText("High Score is:$highscore")
+                    }
+
                     score = 0
                     tvscore.setText("$score")
                     emptymines.clear()
@@ -223,21 +349,24 @@ class GameBoard : View {
 
         var mColorRect =Rect(0,0,0,0)
 
+        var currow =0
+        var currcol=0
 
         mColorRect.left = (( x / 100).toInt()) *100 +(startx).toInt()
         mColorRect.top =  (( y / 100).toInt()) *100 +(starty).toInt()
         mColorRect.bottom = mColorRect.top + 100
         mColorRect.right = mColorRect.left +100
 
-        currentrow = (mColorRect.left) / 100
-        currentcolumn = (mColorRect.top) / 100
+        currow = (mColorRect.left) / 100
+        currcol = (mColorRect.top) / 100
 
-        if (minesarray[currentrow][currentcolumn] == 2 ) {
+        if (minesarray[currow][currcol] == 2 ) {
             return true
         }
         else {
             emptymines.add(mColorRect)
-            minesarray[currentrow][currentcolumn] = 2
+            minesarray[currow][currcol] = 2
+            locatingsurroundingmines(x,y)
         }
 
         return false
@@ -245,6 +374,40 @@ class GameBoard : View {
 
 
     fun resetgame() {
+
+        if(mMode=="hard") {
+            if (score > highscorehard) {
+                highscorehard = score
+                with(hsprefhard.edit()) {
+                    putInt((R.string.hardHighScore).toString(), highscorehard)
+                    apply()
+                }
+
+            }
+        }
+
+        if(mMode == "intermediate") {
+            if (score > highscoreinter) {
+                highscoreinter = score
+                with(hsprefinter.edit()) {
+                    putInt((R.string.interHighScore).toString(), highscoreinter)
+                    apply()
+                }
+
+            }
+        }
+
+        else {
+            if (score > highscore) {
+                highscore = score
+                with(hspref.edit()) {
+                    putInt((R.string.easyHighScore).toString(), highscore)
+                    apply()
+                }
+
+            }
+        }
+
         score = 0
         tvscore.setText("Your score is = $score")
         gameEnd = true
@@ -275,6 +438,191 @@ class GameBoard : View {
         return false
     }
 
+    fun locatingsurroundingmines(x:Float, y:Float) {
+
+        minecount = 0
+
+        var mColorRect =Rect(0,0,0,0)
+
+
+        mColorRect.left = (( x / 100).toInt()) *100 +(startx).toInt()
+        mColorRect.top =  (( y / 100).toInt()) *100 +(starty).toInt()
+        mColorRect.bottom = mColorRect.top + 100
+        mColorRect.right = mColorRect.left +100
+
+        currentrow = (mColorRect.left) / 100
+        currentcolumn = (mColorRect.top) / 100
+
+        minesarray[currentrow][currentcolumn]
+
+        if(currentrow in 1..6 && currentcolumn==0 ) {
+            if(minesarray[currentrow-1][currentcolumn] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn+1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow][currentcolumn+1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn+1] ==1) {
+                minecount++
+            }
+        }
+
+        else if(currentrow==7 && currentcolumn in 1..6) {
+            if(minesarray[currentrow][currentcolumn-1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn-1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow][currentcolumn+1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn+1] ==1) {
+                minecount++
+            }
+        }
+
+        else if(currentrow in 1..6 && currentcolumn ==7) {
+            if(minesarray[currentrow][currentcolumn-1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn-1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn-1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn] ==1) {
+                minecount++
+            }
+        }
+
+        else if(currentrow ==0 && currentcolumn in 1..6) {
+            if(minesarray[currentrow][currentcolumn-1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow][currentcolumn+1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn-1] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn] ==1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn+1] ==1) {
+                minecount++
+            }
+        }
+
+        else if(currentrow==0 && currentcolumn==0) {
+            if(minesarray[currentrow+1][currentcolumn+1] == 1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn] == 1) {
+                minecount++
+            }
+            if (minesarray[currentrow][currentcolumn+1] == 1) {
+                minecount++
+
+            }
+        }
+
+        else if(currentrow==7 && currentcolumn==0) {
+            if(minesarray[currentrow-1][currentcolumn] == 1) {
+                minecount++
+            }
+            if(minesarray[currentrow][currentcolumn+1] == 1) {
+                minecount++
+            }
+            if (minesarray[currentrow-1][currentcolumn+1] == 1) {
+                minecount++
+
+            }
+        }
+
+        else if(currentrow==7 && currentcolumn==7) {
+            if(minesarray[currentrow][currentcolumn-1] == 1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn-1] == 1) {
+                minecount++
+            }
+            if (minesarray[currentrow-1][currentcolumn] == 1) {
+                minecount++
+
+            }
+        }
+
+        else if(currentrow==0 && currentcolumn==7) {
+            if(minesarray[currentrow][currentcolumn-1] == 1) {
+                minecount++
+            }
+            if(minesarray[currentrow+1][currentcolumn-1] == 1) {
+                minecount++
+            }
+            if (minesarray[currentrow+1][currentcolumn] == 1) {
+                minecount++
+
+            }
+        }
+
+        else {
+            if(minesarray[currentrow][currentcolumn-1] == 1) {
+                minecount++
+            }
+            if(minesarray[currentrow][currentcolumn+1] == 1) {
+                minecount++
+            }
+            if (minesarray[currentrow-1][currentcolumn] == 1) {
+                minecount++
+
+            }
+            if(minesarray[currentrow-1][currentcolumn+1] == 1) {
+                minecount++
+            }
+            if(minesarray[currentrow-1][currentcolumn-1] == 1) {
+                minecount++
+            }
+            if (minesarray[currentrow+1][currentcolumn] == 1) {
+                minecount++
+
+            }
+            if(minesarray[currentrow+1][currentcolumn+1] == 1) {
+                minecount++
+            }
+            if (minesarray[currentrow+1][currentcolumn-1] == 1) {
+                minecount++
+
+            }
+
+        }
+
+        minesarraylocate[currentrow][currentcolumn] = minecount
+
+    }
+
+    fun translatecoordinates(currentrect:Rect) : IntArray {
+
+        var translatedcoord: IntArray = IntArray(2)
+        translatedcoord[0] = (currentrect.left) / 100
+        translatedcoord[1] = (currentrect.top) / 100
+
+        return translatedcoord
+    }
+
 
 
     override fun onDraw(canvas: Canvas) {
@@ -299,7 +647,18 @@ class GameBoard : View {
                     gridcolor
                 )
 
+                var displaycoordinate: IntArray = translatecoordinates(emptymines[i])
+                Log.d("okayfine1","${displaycoordinate[0]},${displaycoordinate[1]}")
+                Log.d("okayfine2","${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}")
+                canvas?.drawText(
+                    "${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}",
+                    (emptymines[i].left + emptymines[i].width()/2).toFloat(),
+                    (emptymines[i].top + emptymines[i].height()/2).toFloat(),
+                    paintminecounttext
+
+                )
             }
+
         }
 
         if (gameEnd == true) {

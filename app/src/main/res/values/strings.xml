@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Minesweeper</string>
-    <string name="dialogTitle">Play Again?</string>
+    <string name="easyHighScoreKey">PingPong.easyHighScoreKey</string>
+    <string name="easyHighScore">PingPong.easyHighScore</string>
+    <string name="interHighScoreKey">PingPong.interHighScoreKey</string>
+    <string name="interHighScore">PingPong.interHighScore</string>
+    <string name="hardHighScoreKey">PingPong.hardHighScoreKey</string>
+    <string name="hardHighScore">PingPong.hardHighScore</string>
 </resources>
