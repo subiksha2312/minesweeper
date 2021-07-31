@@ -88,8 +88,7 @@ class GameBoard : View {
 
 
         val attributeArray = context.obtainStyledAttributes(attrs, R.styleable.GameBoard, 0, 0)
-        mMode = attributeArray.getString(R.styleable.GameBoard_gameMode) ?: "easy"
-        Log.d("mode1","$mMode")
+        mMode = attributeArray.getString(R.styleable.GameBoard_gameMode) ?: "easy"  //in attrs_gameboard ,i set mode to be a string so I can hange the values of mines in each mode accordingly
 
         tPaint.color = Color.BLACK
         gridcolor.color = Color.WHITE
@@ -161,7 +160,7 @@ class GameBoard : View {
 
 
 
-    override fun onAttachedToWindow() {
+    override fun onAttachedToWindow() {  //to find the textviews in the layout
         super.onAttachedToWindow()
         tvscore = (parent as View).findViewById(R.id.score) as TextView
         tvscore.setText("$score")
@@ -186,7 +185,7 @@ class GameBoard : View {
 
     }
 
-    fun numberofmines() {
+    fun numberofmines() { //to assign values for the number of mines according to the mode
         if (mMode=="easy") {
             maxsize = 5
         }
@@ -198,7 +197,7 @@ class GameBoard : View {
         }
     }
 
-    fun initMinesArray() {
+    fun initMinesArray() {   // to reinitialize the values in the array to 0
         for(i in 0 until GRIDSIZE) {
             for (j in 0 until GRIDSIZE) {
                 minesarray[i][j] = 0
@@ -206,13 +205,10 @@ class GameBoard : View {
         }
     }
 
-    fun declaringmines() {
-
-        //Log.d("random0","entering declaring mines")
+    fun declaringmines() { // declaring location of the mines in the array randomly
         minecoord.clear()
         initMinesArray()
         var rowarray = arrayOf(0, 1, 2, 3, 4, 5, 6, 7)
-
         var minestringarray2: MutableList<IntArray> = ArrayList()
 
         numberofmines()
@@ -225,10 +221,7 @@ class GameBoard : View {
             minesarray[temp[0]][temp[1]] = 1
 
         }
-        for (i in 0..minestringarray2.size - 1) {
-            Log.d("minesarray1", "${minestringarray2.get(i).toList()}")
 
-        }
         for (i in 0 until maxsize) {
             for (j in i + 1 until maxsize) {
                 if (minestringarray2[i].contentEquals(minestringarray2[j])) {
@@ -242,35 +235,19 @@ class GameBoard : View {
             }
         }
 
-        for (i in 0..minestringarray2.size - 1) {
-            Log.d("minesarray2", "${minestringarray2.get(i).toList()}")
-
-        }
-
         minestringarray2.clear()
-
-            /*
-        minesarray[2][3] = 1
-        minesarray[1][2] = 1
-        minesarray[5][3] = 1
-        minesarray[1][7] = 1
-        minesarray[6][4] = 1
-
-         */
-
 
     }
 
-    fun setMode(mode: String) {
+    fun setMode(mode: String) { // to set the mode
         mMode = mode
     }
 
 
-    fun computeminecoord() {
-
+    fun computeminecoord() {   // to find out the corresponding coordinates of the mine located
         for (i in 0..GRIDSIZE-1) {
             for (j in 0..GRIDSIZE-1) {
-                if (minesarray[i][j] == 1) {
+                if (minesarray[i][j] == 1) {  //setting the value of the mines in the 8x8 array to 1 so as to identify it
 
                     var minerecord: RectF = RectF(0f,0f,0f,0f)
 
@@ -285,7 +262,7 @@ class GameBoard : View {
         }
     }
 
-    fun locatemines(x: Float, y: Float): Boolean {
+    fun locatemines(x: Float, y: Float): Boolean { // to locate if the user has touched on a mine
         for( i in 0 until minecoord.size) {
             if(minecoord[i].contains(x,y)) {
                 return true
@@ -300,52 +277,48 @@ class GameBoard : View {
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
 
-                if(checkOutOfBounds(event.x , event.y) == true) {
+                if(checkOutOfBounds(event.x , event.y) == true) { //incase the touch isn't done on the grid
                     return false
                 }
 
                 if(gameEnd == false) {
-                    if (locatemines(event.x, event.y) == true) {
-                        Log.d("touch001","mineblast")
+                    if (locatemines(event.x, event.y) == true) { //mine has been touched
+                        playfailSound()
                         resetgame()
                     }
                     else {
-                        if (checkiftouchedbefore(event.x, event.y) == false) {
-                            Log.d("touch002", "newsquare")
-                            Log.d("touch003", "incrementing score")
+                        if (checkiftouchedbefore(event.x, event.y) == false) { //once a mine is touched the value is changed from 1 to 2 so , to ensure that score does not increase on multiple touches of the same square
+                            playtouchingsquares()
                             score++
-                            tvscore.setText("Your score is = $score")
+                            tvscore.setText("Score --> $score")
                             postInvalidate()
                         }
                     }
                 }
                 else {
-                    Log.d("touch004","ending game")
-                    if (checkPointInReplayRect(event.x, event.y) == true) {
-                        Log.d("touch005", "restarting new game ")
+                    if (checkPointInReplayRect(event.x, event.y) == true) { //once game is over, to check if the replay square has been touched
                         gameEnd = false
                         declaringmines()
                         computeminecoord()
                         invalidate()
 
-                        Log.d("mode3", "$mMode")
                         if (mMode == "hard") {
                             tvhighscorehard =
                                 (parent as View).findViewById(R.id.highscorehard) as TextView
-                            tvhighscorehard.setText("High Score is: $highscorehard")
+                            tvhighscorehard.setText("High Score --> $highscorehard")
                         } else if (mMode == "intermediate") {
                             tvhighscoreinter =
                                 (parent as View).findViewById(R.id.highscoreinter) as TextView
-                            tvhighscoreinter.setText("High Score is:$highscoreinter")
+                            tvhighscoreinter.setText("High Score --> $highscoreinter")
                         } else {
                             tvhighscoreeasy =
                                 (parent as View).findViewById(R.id.highscore) as TextView
-                            tvhighscoreeasy.setText("High Score is:$highscore")
+                            tvhighscoreeasy.setText("High Score --> $highscore")
                         }
 
                         score = 0
                         tvscore.setText("$score")
-                        emptymines.clear()
+                        emptymines.clear() //clearing mines so next run of the game the same values are not there
 
 
                     }
@@ -357,7 +330,15 @@ class GameBoard : View {
         return false
     }
 
-    fun checkOutOfBounds(x:Float, y:Float) :Boolean {
+    fun playtouchingsquares() { //audio for touching square
+        soundPoolTouchingsquares.play(touchingsquares ,1f, 1f, 4, 0, 2f)
+    }
+
+    fun playfailSound() { // audio when game is over
+        soundPoolFailure.play(gameloss, 1f, 1f, 1, 0, 2f)
+    }
+
+    fun checkOutOfBounds(x:Float, y:Float) :Boolean { //if touch event is out of the 8x8 translated array
 
         var mColorRect =Rect(0,0,0,0)
 
@@ -378,7 +359,7 @@ class GameBoard : View {
         return false
     }
 
-    fun checkiftouchedbefore(x:Float, y:Float) : Boolean {
+    fun checkiftouchedbefore(x:Float, y:Float) : Boolean { //to check if the same square has been touched again
 
         var mColorRect =Rect(0,0,0,0)
 
@@ -406,7 +387,7 @@ class GameBoard : View {
     }
 
 
-    fun resetgame() {
+    fun resetgame() { // to reset the game
 
         if(mMode=="hard") {
             if (score > highscorehard) {
@@ -473,7 +454,7 @@ class GameBoard : View {
         return false
     }
 
-    fun locatingsurroundingmines(x:Float, y:Float) {
+    fun locatingsurroundingmines(x:Float, y:Float) { // to see if there are mines surrounding the touched square
 
         minecount = 0
 
@@ -649,7 +630,7 @@ class GameBoard : View {
 
     }
 
-    fun translatecoordinates(currentrect:Rect) : IntArray {
+    fun translatecoordinates(currentrect:Rect) : IntArray { // to translate the coordinates in terms of the mines
 
         var translatedcoord: IntArray = IntArray(2)
         translatedcoord[0] = (currentrect.left) / 100
@@ -678,18 +659,13 @@ class GameBoard : View {
             if (emptymines.size != 0) {
                 for (i in 0 until emptymines.size) {
                     canvas?.drawRect(
-                        emptymines[i],
+                        emptymines[i],//to change the color to white on touching
                         gridcolor
                     )
 
                     var displaycoordinate: IntArray = translatecoordinates(emptymines[i])
-                    Log.d("okayfine1", "${displaycoordinate[0]},${displaycoordinate[1]}")
-                    Log.d(
-                        "okayfine2",
-                        "${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}"
-                    )
                     canvas?.drawText(
-                        "${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}",
+                        "${minesarraylocate[displaycoordinate[0]][displaycoordinate[1]]}",// to draw the value of the number of mines surrounding a square
                         (emptymines[i].left + emptymines[i].width() / 2).toFloat(),
                         (emptymines[i].top + emptymines[i].height() / 2).toFloat(),
                         paintminecounttext
@@ -701,7 +677,7 @@ class GameBoard : View {
         }
 
         if (gameEnd == true) {
-
+            //to draw a grey rectangle, a black rectangle inside it and text replay
             canvas?.drawRect(
                 0f,
                 (height / 3).toFloat(),
@@ -729,9 +705,11 @@ class GameBoard : View {
 
 }
 
-private fun <E> ArrayList<E>.add(element: Array<IntArray>) {
+/*private fun <E> ArrayList<E>.add(element: Array<IntArray>) {
 
 }
+
+ */
 
 
 
