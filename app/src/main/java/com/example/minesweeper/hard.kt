@@ -1,8 +1,10 @@
 package com.example.minesweeper
 
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 
 class hard : AppCompatActivity() {
     private lateinit var gameBoard: GameBoard
@@ -14,6 +16,12 @@ class hard : AppCompatActivity() {
         this.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         gameBoard = GameBoard(this.applicationContext)
         gameBoard.setMode("hard")
+
+    }
+
+    override fun onDestroy() {
+        gameEnd = false
+        super.onDestroy()
 
     }
 }

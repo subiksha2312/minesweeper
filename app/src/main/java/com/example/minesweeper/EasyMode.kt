@@ -1,8 +1,10 @@
 package com.example.minesweeper
 
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+
 
 class EasyMode : AppCompatActivity() {
 
@@ -16,6 +18,14 @@ class EasyMode : AppCompatActivity() {
         gameBoard = GameBoard(this.applicationContext)
 
     }
+
+
+    override fun onDestroy() {
+        gameEnd = false
+        super.onDestroy()
+
+    }
+
 
 
 }

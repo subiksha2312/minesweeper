@@ -1,5 +1,6 @@
 package com.example.minesweeper
 
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -15,5 +16,14 @@ class intermediate : AppCompatActivity() {
         this.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         gameBoard = GameBoard(this.applicationContext)
         gameBoard.setMode("intermediate")
+
+
+    }
+
+
+    override fun onDestroy() {
+        gameEnd = false
+        super.onDestroy()
+
     }
 }
